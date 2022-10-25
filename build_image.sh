@@ -1,4 +1,5 @@
 #!/bin/sh
+PIP_VERSION=22.3
 
 # Script to build a plone backend image based on configuration in files:
 # image.txt
@@ -23,10 +24,19 @@ BUILD_PATH=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
     exit 1
 }
 
+[ -f pip_version.txt ] && {
+    PIP_VERSION=$(cat pip_version.txt |xargs echo -n)
+}
+
+
 IMAGE=$(cat image.txt |xargs echo -n)
 EXTRA_PACKAGES=$(cat requirements.txt |xargs echo -n)
 PLONE_VERSION=$(cat plone_version.txt |xargs echo -n)
 
 export DOCKER_BUILDKIT=1
 
-docker build --ssh default --progress=plain "$BUILD_PATH" -t $IMAGE --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" --build-arg PLONE_VERSION="${PLONE_VERSION}" --build-arg PLONE_VOLTO=
+docker build --ssh default --progress=plain "$BUILD_PATH" -t $IMAGE \
+    --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" \
+    --build-arg PLONE_VERSION="${PLONE_VERSION}" \
+    --build-arg PLONE_VOLTO= \
+    --build-arg PIP_VERSION=${PIP_VERSION}
