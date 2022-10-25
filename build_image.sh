@@ -29,4 +29,4 @@ PLONE_VERSION=$(cat plone_version.txt |xargs echo -n)
 
 export DOCKER_BUILDKIT=1
 
-docker build --progress=plain "$BUILD_PATH" -t $IMAGE --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" --build-arg PLONE_VERSION="${PLONE_VERSION}" --build-arg PLONE_VOLTO=
+docker build --ssh default --progress=plain "$BUILD_PATH" -t $IMAGE --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" --build-arg PLONE_VERSION="${PLONE_VERSION}" --build-arg PLONE_VOLTO=

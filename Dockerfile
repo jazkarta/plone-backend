@@ -7,10 +7,13 @@ ENV PIP_VERSION=22.0.4
 RUN mkdir /wheelhouse
 
 RUN apt-get update \
-    && buildDeps="git dpkg-dev gcc libbz2-dev libc6-dev libffi-dev libjpeg62-turbo-dev libldap2-dev libopenjp2-7-dev libpcre3-dev libpq-dev libsasl2-dev libssl-dev libtiff5-dev libxml2-dev libxslt1-dev wget zlib1g-dev python3-dev build-essential" \
+    && buildDeps="git openssh-client dpkg-dev gcc libbz2-dev libc6-dev libffi-dev libjpeg62-turbo-dev libldap2-dev libopenjp2-7-dev libpcre3-dev libpq-dev libsasl2-dev libssl-dev libtiff5-dev libxml2-dev libxslt1-dev wget zlib1g-dev python3-dev build-essential" \
     && apt-get install -y --no-install-recommends $buildDeps\
     && pip install -U "pip==${PIP_VERSION}" \
-    && rm -rf /var/lib/apt/lists/* /usr/share/doc
+    && rm -rf /var/lib/apt/lists/* /usr/share/doc \
+    && mkdir -p /root/.ssh \
+    && echo 'Host *\n    StrictHostKeyChecking no' > /root/.ssh/config
+
 
 ARG PLONE_VERSION=5.2.9
 ARG PLONE_VOLTO="plone.volto==3.1.0a4"
