@@ -1,5 +1,16 @@
+# syntax=docker/dockerfile:1.4
 FROM python:3.8-slim-buster as base
 FROM base as builder
+
+ENV PIP_VERSION=22.0.4
+
+RUN mkdir /wheelhouse
+
+RUN apt-get update \
+    && buildDeps="dpkg-dev gcc libbz2-dev libc6-dev libffi-dev libjpeg62-turbo-dev libldap2-dev libopenjp2-7-dev libpcre3-dev libpq-dev libsasl2-dev libssl-dev libtiff5-dev libxml2-dev libxslt1-dev wget zlib1g-dev python3-dev build-essential" \
+    && apt-get install -y --no-install-recommends $buildDeps\
+    && pip install -U "pip==${PIP_VERSION}" \
+    && rm -rf /var/lib/apt/lists/* /usr/share/doc
 
 ARG PLONE_VERSION=5.2.9
 ARG EXTRA_PACKAGES="relstorage==3.4.5 psycopg2==2.9.3 python-ldap==3.4.0"
@@ -10,14 +21,6 @@ ENV PIP_VERSION=22.0.4
 ENV PLONE_VERSION=$PLONE_VERSION
 ENV PLONE_VOLTO=$PLONE_VOLTO
 ENV EXTRA_PACKAGES=$EXTRA_PACKAGES
-
-RUN mkdir /wheelhouse
-
-RUN apt-get update \
-    && buildDeps="dpkg-dev gcc libbz2-dev libc6-dev libffi-dev libjpeg62-turbo-dev libldap2-dev libopenjp2-7-dev libpcre3-dev libpq-dev libsasl2-dev libssl-dev libtiff5-dev libxml2-dev libxslt1-dev wget zlib1g-dev python3-dev build-essential" \
-    && apt-get install -y --no-install-recommends $buildDeps\
-    && pip install -U "pip==${PIP_VERSION}" \
-    && rm -rf /var/lib/apt/lists/* /usr/share/doc
 
 RUN pip wheel Paste Plone ${PLONE_VOLTO} -c https://dist.plone.org/release/$PLONE_VERSION/constraints.txt  ${PIP_PARAMS} --wheel-dir=/wheelhouse
 RUN pip wheel ${EXTRA_PACKAGES} -c https://dist.plone.org/release/$PLONE_VERSION/constraints.txt  ${PIP_PARAMS} --wheel-dir=/wheelhouse
