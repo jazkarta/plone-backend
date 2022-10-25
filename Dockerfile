@@ -40,7 +40,6 @@ LABEL maintainer="Plone Community <dev@plone.org>" \
       org.label-schema.description="Plone backend image image using Python 3.8" \
       org.label-schema.vendor="Plone Foundation"
 
-COPY --from=builder /wheelhouse /wheelhouse
 
 RUN useradd --system -m -d /app -U -u 500 plone \
     && runDeps="git libjpeg62 libopenjp2-7 libpq5 libtiff5 libxml2 libxslt1.1 lynx poppler-utils rsync wv busybox libmagic1 gosu" \
@@ -49,6 +48,8 @@ RUN useradd --system -m -d /app -U -u 500 plone \
     && busybox --install -s \
     && rm -rf /var/lib/apt/lists/* /usr/share/doc \
     && mkdir -p /data/filestorage /data/blobstorage /data/log /data/cache
+
+COPY --from=builder /wheelhouse /wheelhouse
 
 WORKDIR /app
 
