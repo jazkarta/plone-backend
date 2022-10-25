@@ -22,8 +22,8 @@ ENV PLONE_VERSION=$PLONE_VERSION
 ENV PLONE_VOLTO=$PLONE_VOLTO
 ENV EXTRA_PACKAGES=$EXTRA_PACKAGES
 
-RUN pip wheel Paste Plone ${PLONE_VOLTO} -c https://dist.plone.org/release/$PLONE_VERSION/constraints.txt  ${PIP_PARAMS} --wheel-dir=/wheelhouse
-RUN pip wheel ${EXTRA_PACKAGES} -c https://dist.plone.org/release/$PLONE_VERSION/constraints.txt  ${PIP_PARAMS} --wheel-dir=/wheelhouse
+RUN --mount=type=cache,target=/root/.cache pip wheel Paste Plone ${PLONE_VOLTO} -c https://dist.plone.org/release/$PLONE_VERSION/constraints.txt  ${PIP_PARAMS} --wheel-dir=/wheelhouse
+RUN --mount=type=cache,target=/root/.cache pip wheel ${EXTRA_PACKAGES} -c https://dist.plone.org/release/$PLONE_VERSION/constraints.txt  ${PIP_PARAMS} --wheel-dir=/wheelhouse
 
 FROM base
 
