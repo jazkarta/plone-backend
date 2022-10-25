@@ -1,11 +1,15 @@
 FROM python:3.8-slim-buster as base
 FROM base as builder
 
+ARG PLONE_VERSION=5.2.9
+ARG EXTRA_PACKAGES="relstorage==3.4.5 psycopg2==2.9.3 python-ldap==3.4.0"
+ARG PLONE_VOLTO="plone.volto==3.1.0a4"
+
 ENV PIP_PARAMS=""
 ENV PIP_VERSION=22.0.4
-ENV PLONE_VERSION=5.2.9
-ENV PLONE_VOLTO="plone.volto==3.1.0a4"
-ENV EXTRA_PACKAGES="relstorage==3.4.5 psycopg2==2.9.3 python-ldap==3.4.0"
+ENV PLONE_VERSION=$PLONE_VERSION
+ENV PLONE_VOLTO=$PLONE_VOLTO
+ENV EXTRA_PACKAGES=$EXTRA_PACKAGES
 
 RUN mkdir /wheelhouse
 
