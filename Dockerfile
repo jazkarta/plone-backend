@@ -19,7 +19,8 @@ RUN apt-get update \
     && pip install -U "pip==${PIP_VERSION}" \
     && rm -rf /var/lib/apt/lists/* /usr/share/doc
 
-RUN pip wheel Paste Plone ${PLONE_VOLTO} ${EXTRA_PACKAGES} -c https://dist.plone.org/release/$PLONE_VERSION/constraints.txt  ${PIP_PARAMS} --wheel-dir=/wheelhouse
+RUN pip wheel Paste Plone ${PLONE_VOLTO} -c https://dist.plone.org/release/$PLONE_VERSION/constraints.txt  ${PIP_PARAMS} --wheel-dir=/wheelhouse
+RUN pip wheel ${EXTRA_PACKAGES} -c https://dist.plone.org/release/$PLONE_VERSION/constraints.txt  ${PIP_PARAMS} --wheel-dir=/wheelhouse
 
 FROM base
 
