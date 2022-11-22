@@ -2,6 +2,8 @@
 FROM python:3.8-slim-buster as base
 FROM base as builder
 
+######################## builder image ##########################
+
 RUN mkdir /wheelhouse
 
 RUN apt-get update \
@@ -14,8 +16,10 @@ RUN apt-get update \
 
 ARG PIP_VERSION=22.0.4
 ENV PIP_VERSION=$PIP_VERSION
+ARG SETUPTOOLS_VERSION=65.6.0
+ENV SETUPTOOLS_VERSION=$SETUPTOOLS_VERSION
 
-RUN pip install -U "pip==${PIP_VERSION}"
+RUN pip install -U "pip==${PIP_VERSION}" "setuptools==${SETUPTOOLS_VERSION}"
 
 ARG PLONE_VERSION=5.2.9
 ARG PLONE_VOLTO="plone.volto==3.1.0a4"
@@ -28,7 +32,9 @@ RUN --mount=type=cache,target=/root/.cache pip wheel Paste Plone ${PLONE_VOLTO} 
 ARG EXTRA_PACKAGES="relstorage==3.4.5 psycopg2==2.9.3 python-ldap==3.4.0"
 ENV EXTRA_PACKAGES=$EXTRA_PACKAGES
 
-RUN --mount=type=ssh --mount=type=cache,target=/root/.cache pip wheel ${EXTRA_PACKAGES} -c https://dist.plone.org/release/$PLONE_VERSION/constraints.txt  ${PIP_PARAMS} --wheel-dir=/wheelhouse
+RUN --mount=type=ssh --mount=type=cache,target=/root/.cache [ -z "${EXTRA_PACKAGES}" ] || pip wheel ${EXTRA_PACKAGES} -c https://dist.plone.org/release/$PLONE_VERSION/constraints.txt  ${PIP_PARAMS} --wheel-dir=/wheelhouse
+
+######################## Final image ##########################
 
 FROM base
 
@@ -51,12 +57,13 @@ COPY --from=builder /wheelhouse /wheelhouse
 WORKDIR /app
 
 ARG PIP_VERSION=22.0.4
-ENV PIP_PARAMS=""
 ENV PIP_VERSION=$PIP_VERSION
+ARG SETUPTOOLS_VERSION=65.6.0
+ENV SETUPTOOLS_VERSION=$SETUPTOOLS_VERSION
 
 RUN python -m venv . \
-    && ./bin/pip install -U "pip==${PIP_VERSION}" \
-    && ./bin/pip install --force-reinstall --no-index --no-deps ${PIP_PARAMS} /wheelhouse/* \
+    && ./bin/pip install -U "pip==${PIP_VERSION}" "setuptools==${SETUPTOOLS_VERSION}" \
+    && ./bin/pip install --force-reinstall --no-index --no-deps /wheelhouse/* \
     && find . \( -type f -a -name '*.pyc' -o -name '*.pyo' \) -exec rm -rf '{}' + \
     && rm -rf .cache
 
