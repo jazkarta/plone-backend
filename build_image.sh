@@ -36,19 +36,30 @@ SETUPTOOLS_VERSION=65.6.0
     echo Using setuptools version ${SETUPTOOLS_VERSION}
 }
 
-[ -d LOCAL_SOURCES ] || {
+[ -f local_sources.txt ] && {
+    LOCAL_SOURCES=$(printf "%s" "$(cat local_sources.txt)")
+    echo Getting sources from  ${LOCAL_SOURCES}
+}
+
+[ -d "$LOCAL_SOURCES" ] || {
     echo "Directory $LOCAL_SOURCES not found. Point the environment variable LOCAL_SOURCES to a directory containing your custom python packages"
+    exit 1
+}
+
+ls "$LOCAL_SOURCES"/*/setup.py > /dev/null 2> /dev/null || {
+    echo The directory $LOCAL_SOURCES contains no pyhon packages
+    echo Make sure you provide your local source directory name in local_sources.txt
+    exit 1
 }
 
 
 IMAGE=$(printf "%s" "$(cat image.txt)")
 PLONE_VERSION=$(printf "%s" "$(cat plone_version.txt)")
 
-export DOCKER_BUILDKIT=1
-
-docker build --ssh default --progress=plain "$BUILD_PATH" -t $IMAGE \
+docker buildx build --ssh default --progress=plain "$BUILD_PATH" -t $IMAGE \
     --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" \
     --build-arg PLONE_VERSION="${PLONE_VERSION}" \
     --build-arg PLONE_VOLTO= \
     --build-arg PIP_VERSION=${PIP_VERSION} \
-    --build-arg SETUPTOOLS_VERSION=${SETUPTOOLS_VERSION}
+    --build-arg SETUPTOOLS_VERSION=${SETUPTOOLS_VERSION} \
+    --build-context "sources=$(readlink -f ${LOCAL_SOURCES})"

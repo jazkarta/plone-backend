@@ -73,6 +73,17 @@ RUN ln -s /data var \
     && find /data  -not -user plone -exec chown plone:plone {} \+ \
     && find /app -not -user plone -exec chown plone:plone {} \+
 
+RUN --mount=from=sources,target=/sources-mount <<EOT
+    set -e -x
+    cp -a /sources-mount /sources
+    to_install=""
+    for setup_file in $(ls /sources/*/setup.py); do
+        directory="$(dirname $setup_file)"
+        to_install="$to_install -e $directory"
+    done
+    ./bin/pip install $to_install
+EOT
+
 EXPOSE 8080
 VOLUME /data
 
