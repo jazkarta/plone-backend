@@ -6,10 +6,10 @@ FROM base as builder
 
 RUN mkdir /wheelhouse
 
-RUN apt-get update \
+RUN --mount=type=cache,target=/var/cache/debconf --mount=type=cache,target=/var/cache/apt/archives --mount=type=cache,target=/var/lib/apt/list --mount=type=tmpfs,target=/usr/share/doc apt-get update \
     && buildDeps="git openssh-client dpkg-dev gcc libbz2-dev libc6-dev libffi-dev libjpeg62-turbo-dev libldap2-dev libopenjp2-7-dev libpcre3-dev libpq-dev libsasl2-dev libssl-dev libtiff5-dev libxml2-dev libxslt1-dev wget zlib1g-dev python3-dev build-essential" \
-    && apt-get install -y --no-install-recommends $buildDeps\
-    && rm -rf /var/lib/apt/lists/* /usr/share/doc /var/cache/debconf/ /var/cache/apt/archives/ \
+    && apt-get install -y --no-install-recommends $buildDeps \
+    && rm -rf /var/cache/debconf/* \
     && mkdir -p /root/.ssh \
     && echo 'Host *\n    StrictHostKeyChecking no' > /root/.ssh/config
 
@@ -44,13 +44,13 @@ LABEL maintainer="Plone Community <dev@plone.org>" \
       org.label-schema.vendor="Plone Foundation"
 
 
-RUN useradd --system -m -d /app -U -u 500 plone \
-    && runDeps="libjpeg62 libopenjp2-7 libpq5 libtiff5 libxml2 libxslt1.1 poppler-utils wv busybox libmagic1" \
+RUN --mount=type=cache,target=/var/cache/debconf --mount=type=cache,target=/var/lib/apt/list --mount=type=tmpfs,target=/usr/share/doc \
+    runDeps="libjpeg62 libopenjp2-7 libpq5 libtiff5 libxml2 libxslt1.1 poppler-utils wv busybox libmagic1" \
     && apt-get update \
     && apt-get install -y --no-install-recommends $runDeps \
     && busybox --install -s \
-    && rm -rf /var/lib/apt/lists/* /usr/share/doc /var/cache/debconf/ /var/cache/apt/archives/ \
-    && mkdir -p /data/filestorage /data/blobstorage /data/log /data/cache
+    && mkdir -p /data/filestorage /data/blobstorage /data/log /data/cache \
+    && rm -rf /var/cache/debconf/* /var/cache/apt/archives/* /var/lib/dpkg/status* /var/log/dpkg* /var/log/apt/*
 
 WORKDIR /app
 
