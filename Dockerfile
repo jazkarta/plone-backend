@@ -9,7 +9,7 @@ RUN mkdir /wheelhouse
 RUN apt-get update \
     && buildDeps="git openssh-client dpkg-dev gcc libbz2-dev libc6-dev libffi-dev libjpeg62-turbo-dev libldap2-dev libopenjp2-7-dev libpcre3-dev libpq-dev libsasl2-dev libssl-dev libtiff5-dev libxml2-dev libxslt1-dev wget zlib1g-dev python3-dev build-essential" \
     && apt-get install -y --no-install-recommends $buildDeps\
-    && rm -rf /var/lib/apt/lists/* /usr/share/doc \
+    && rm -rf /var/lib/apt/lists/* /usr/share/doc /var/cache/debconf/ /var/cache/apt/archives/ \
     && mkdir -p /root/.ssh \
     && echo 'Host *\n    StrictHostKeyChecking no' > /root/.ssh/config
 
@@ -45,14 +45,12 @@ LABEL maintainer="Plone Community <dev@plone.org>" \
 
 
 RUN useradd --system -m -d /app -U -u 500 plone \
-    && runDeps="git libjpeg62 libopenjp2-7 libpq5 libtiff5 libxml2 libxslt1.1 lynx poppler-utils rsync wv busybox libmagic1 gosu" \
+    && runDeps="libjpeg62 libopenjp2-7 libpq5 libtiff5 libxml2 libxslt1.1 poppler-utils wv busybox libmagic1" \
     && apt-get update \
     && apt-get install -y --no-install-recommends $runDeps \
     && busybox --install -s \
-    && rm -rf /var/lib/apt/lists/* /usr/share/doc \
+    && rm -rf /var/lib/apt/lists/* /usr/share/doc /var/cache/debconf/ /var/cache/apt/archives/ \
     && mkdir -p /data/filestorage /data/blobstorage /data/log /data/cache
-
-COPY --from=builder /wheelhouse /wheelhouse
 
 WORKDIR /app
 
@@ -61,17 +59,12 @@ ENV PIP_VERSION=$PIP_VERSION
 ARG SETUPTOOLS_VERSION=65.6.0
 ENV SETUPTOOLS_VERSION=$SETUPTOOLS_VERSION
 
-RUN python -m venv . \
-    && ./bin/pip install -U "pip==${PIP_VERSION}" "setuptools==${SETUPTOOLS_VERSION}" \
-    && ./bin/pip install --force-reinstall --no-index --no-deps /wheelhouse/* \
-    && find . \( -type f -a -name '*.pyc' -o -name '*.pyo' \) -exec rm -rf '{}' + \
-    && rm -rf .cache
+RUN --mount=from=builder,target=/builder --mount=type=cache,target=/root/.cache \
+    ln -s /data var \
+    && pip install -U "pip==${PIP_VERSION}" "setuptools==${SETUPTOOLS_VERSION}" \
+    && pip install --no-index --no-deps /builder/wheelhouse/*
 
 COPY skeleton/ /app
-
-RUN ln -s /data var \
-    && find /data  -not -user plone -exec chown plone:plone {} \+ \
-    && find /app -not -user plone -exec chown plone:plone {} \+
 
 RUN --mount=from=sources,target=/sources-mount <<EOT
     set -e -x
@@ -81,7 +74,7 @@ RUN --mount=from=sources,target=/sources-mount <<EOT
         directory="$(dirname $setup_file)"
         to_install="$to_install -e $directory"
     done
-    ./bin/pip install $to_install
+    pip install $to_install
 EOT
 
 EXPOSE 8080
