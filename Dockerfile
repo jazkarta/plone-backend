@@ -50,7 +50,7 @@ RUN --mount=type=cache,target=/var/cache/debconf --mount=type=cache,target=/var/
     && apt-get install -y --no-install-recommends $runDeps \
     && busybox --install -s \
     && mkdir -p /data/filestorage /data/blobstorage /data/log /data/cache \
-    && rm -rf /var/cache/debconf/* /var/cache/apt/archives/* /var/lib/dpkg/status* /var/log/dpkg* /var/log/apt/*
+    && rm -rf /var/cache/debconf/* /var/cache/apt/archives/* /var/log/dpkg* /var/log/apt/*
 
 WORKDIR /app
 
