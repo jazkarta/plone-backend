@@ -1,0 +1,9 @@
+#!/usr/bin/env python
+
+import plone.recipe.zope2instance.ctl
+import sys
+
+if __name__ == '__main__':
+    sys.exit(plone.recipe.zope2instance.ctl.main(
+        ['-C', '/app/etc/zeo.conf', '-p', '/app/bin/interpreter', '-w', '/app/etc/zope.ini']
+        + sys.argv[1:]))
