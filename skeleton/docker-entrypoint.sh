@@ -6,7 +6,7 @@ if [ -z "${PIP_PARAMS}" ]; then
 fi
 
 # CLIENT HOME
-CLIENT_HOME="/data/$(hostname)/$(hostid)"
+CLIENT_HOME="/data/client_var"
 export CLIENT_HOME=$CLIENT_HOME
 
 # Create directories to be used by Plone

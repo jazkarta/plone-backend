@@ -62,7 +62,8 @@ ENV SETUPTOOLS_VERSION=$SETUPTOOLS_VERSION
 RUN --mount=from=builder,target=/builder --mount=type=cache,target=/root/.cache \
     ln -s /data var \
     && pip install -U "pip==${PIP_VERSION}" "setuptools==${SETUPTOOLS_VERSION}" \
-    && pip install --no-index --no-deps /builder/wheelhouse/*
+    && pip install --no-index --no-deps /builder/wheelhouse/* \
+    && pip install plone.recipe.zope2instance==6.11.0
 
 COPY skeleton/ /app
 
@@ -84,3 +85,17 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=30s CMD wget -q http://12
 
 ENTRYPOINT [ "/app/docker-entrypoint.sh" ]
 CMD ["start"]
+
+# Provide defaults for various configuration options
+ENV DEBUG_MODE=on \
+    SECURITY_POLICY_IMPLEMENTATION=C \
+    VERBOSE_SECURITY=off \
+    DEFAULT_ZPUBLISHER_ENCODING=utf-8 \
+    ZODB_CACHE_SIZE=50000 \
+    ZEO_SHARED_BLOB_DIR=off \
+    ZEO_READ_ONLY=false \
+    ZEO_CLIENT_READ_ONLY_FALLBACK=false \
+    ZEO_STORAGE=1 \
+    ZEO_CLIENT_CACHE_SIZE=128MB \
+    ZEO_DROP_CACHE_RATHER_VERIFY=false \
+    CLIENT_HOME=/tmp
