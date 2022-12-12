@@ -56,7 +56,7 @@ ls "$LOCAL_SOURCES"/*/setup.py > /dev/null 2> /dev/null || {
 IMAGE=$(printf "%s" "$(cat image.txt)")
 PLONE_VERSION=$(printf "%s" "$(cat plone_version.txt)")
 
-docker buildx build --ssh default --progress=plain "$BUILD_PATH" -t $IMAGE \
+docker buildx build --progress=plain "$BUILD_PATH" -t $IMAGE \
     --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" \
     --build-arg PLONE_VERSION="${PLONE_VERSION}" \
     --build-arg PLONE_VOLTO= \
