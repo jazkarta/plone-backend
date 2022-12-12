@@ -55,8 +55,21 @@ ls "$LOCAL_SOURCES"/*/setup.py > /dev/null 2> /dev/null || {
 
 IMAGE=$(printf "%s" "$(cat image.txt)")
 PLONE_VERSION=$(printf "%s" "$(cat plone_version.txt)")
+DEPENDENCIES_IMAGE="$IMAGE":dependencies
 
-docker buildx build --progress=plain "$BUILD_PATH" -t $IMAGE \
+docker pull $DEPENDENCIES_IMAGE || docker buildx build --progress=plain "$BUILD_PATH" \
+    --tag "$DEPENDENCIES_IMAGE" \
+    --target dependencies \
+    --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" \
+    --build-arg PLONE_VERSION="${PLONE_VERSION}" \
+    --build-arg PLONE_VOLTO= \
+    --build-arg PIP_VERSION=${PIP_VERSION} \
+    --build-arg SETUPTOOLS_VERSION=${SETUPTOOLS_VERSION} \
+    --build-context "sources=$(readlink -f ${LOCAL_SOURCES})"
+
+docker buildx build --progress=plain "$BUILD_PATH" \
+    --tag "$IMAGE" \
+    --build-arg BASE_IMAGE="$DEPENDENCIES_IMAGE" \
     --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" \
     --build-arg PLONE_VERSION="${PLONE_VERSION}" \
     --build-arg PLONE_VOLTO= \

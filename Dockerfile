@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1.4
+ARG base_image=dependencies
 FROM python:3.8-slim-buster as base
 FROM base as builder
 
@@ -34,9 +35,9 @@ ENV EXTRA_PACKAGES=$EXTRA_PACKAGES
 
 RUN --mount=type=ssh --mount=type=cache,target=/root/.cache [ -z "${EXTRA_PACKAGES}" ] || pip wheel ${EXTRA_PACKAGES} -c https://dist.plone.org/release/$PLONE_VERSION/constraints.txt  ${PIP_PARAMS} --wheel-dir=/wheelhouse
 
-######################## Final image ##########################
+######################## Image with dependencies ##########################
 
-FROM base
+FROM base as dependencies
 
 LABEL maintainer="Plone Community <dev@plone.org>" \
       org.label-schema.name="plone-backend" \
@@ -67,17 +68,6 @@ RUN --mount=from=builder,target=/builder --mount=type=cache,target=/root/.cache 
 
 COPY skeleton/ /app
 
-RUN --mount=from=sources,target=/sources-mount <<EOT
-    set -e -x
-    cp -a /sources-mount /sources
-    to_install=""
-    for setup_file in $(ls /sources/*/setup.py); do
-        directory="$(dirname $setup_file)"
-        to_install="$to_install -e $directory"
-    done
-    pip install $to_install
-EOT
-
 EXPOSE 8080
 VOLUME /data
 
@@ -99,3 +89,19 @@ ENV DEBUG_MODE=on \
     ZEO_CLIENT_CACHE_SIZE=128MB \
     ZEO_DROP_CACHE_RATHER_VERIFY=false \
     CLIENT_HOME=/tmp
+
+########################## Image with dependencies + this project's code (Final image) ##########################
+
+FROM $base_image
+#FROM dependencies
+
+RUN --mount=from=sources,target=/sources-mount <<EOT
+    set -e -x
+    cp -a /sources-mount /sources
+    to_install=""
+    for setup_file in $(ls /sources/*/setup.py); do
+        directory="$(dirname $setup_file)"
+        to_install="$to_install -e $directory"
+    done
+    pip install $to_install
+EOT
