@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.4
 ARG base_image=dependencies
-FROM python:3.8-slim-buster as base
+FROM python:3.6-slim-buster as base
 FROM base as builder
 
 ######################## builder image ##########################
