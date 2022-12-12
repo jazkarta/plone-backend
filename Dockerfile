@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.4
 ARG base_image=dependencies
-FROM python:3.6-slim-buster as base
+FROM python:3.7-slim-buster as base
 FROM base as builder
 
 ######################## builder image ##########################
@@ -93,7 +93,6 @@ ENV DEBUG_MODE=on \
 ########################## Image with dependencies + this project's code (Final image) ##########################
 
 FROM $base_image
-#FROM dependencies
 
 RUN --mount=from=sources,target=/sources-mount <<EOT
     set -e -x
