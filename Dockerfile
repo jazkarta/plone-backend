@@ -97,6 +97,10 @@ FROM $base_image
 RUN --mount=from=sources,target=/sources-mount <<EOT
     set -e -x
     cp -a /sources-mount /sources
+    # This is the only combination I found that works:
+    # upgrading pip before installing custom packages, but using an older
+    # one for the Plone base
+    python -m pip install --upgrade pip
     to_install=""
     for setup_file in $(ls /sources/*/setup.py); do
         directory="$(dirname $setup_file)"
