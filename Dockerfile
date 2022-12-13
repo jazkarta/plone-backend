@@ -5,7 +5,7 @@ FROM base as builder
 
 ######################## builder image ##########################
 
-RUN mkdir /wheelhouse
+RUN mkdir /wheelhouse /wheelhouse-ours
 
 RUN --mount=type=cache,target=/var/cache/debconf --mount=type=cache,target=/var/cache/apt/archives --mount=type=cache,target=/var/lib/apt/list --mount=type=tmpfs,target=/usr/share/doc apt-get update \
     && buildDeps="git openssh-client dpkg-dev gcc libbz2-dev libc6-dev libffi-dev libjpeg62-turbo-dev libldap2-dev libopenjp2-7-dev libpcre3-dev libpq-dev libsasl2-dev libssl-dev libtiff5-dev libxml2-dev libxslt1-dev wget zlib1g-dev python3-dev build-essential" \
@@ -33,7 +33,7 @@ RUN --mount=type=cache,target=/root/.cache pip wheel Paste Plone ${PLONE_VOLTO} 
 ARG EXTRA_PACKAGES="relstorage==3.4.5 psycopg2==2.9.3 python-ldap==3.4.0"
 ENV EXTRA_PACKAGES=$EXTRA_PACKAGES
 
-RUN --mount=type=ssh --mount=type=cache,target=/root/.cache [ -z "${EXTRA_PACKAGES}" ] || pip wheel ${EXTRA_PACKAGES} -c https://dist.plone.org/release/$PLONE_VERSION/constraints.txt  ${PIP_PARAMS} --wheel-dir=/wheelhouse
+RUN --mount=type=ssh --mount=type=cache,target=/root/.cache [ -z "${EXTRA_PACKAGES}" ] || pip wheel ${EXTRA_PACKAGES} -c https://dist.plone.org/release/$PLONE_VERSION/constraints.txt  ${PIP_PARAMS} --wheel-dir=/wheelhouse-ours
 
 ######################## Image with dependencies ##########################
 
@@ -64,6 +64,7 @@ RUN --mount=from=builder,target=/builder --mount=type=cache,target=/root/.cache 
     ln -s /data var \
     && pip install -U "pip==${PIP_VERSION}" "setuptools==${SETUPTOOLS_VERSION}" \
     && pip install --no-index --no-deps /builder/wheelhouse/* \
+    && pip install --no-index --no-deps /builder/wheelhouse-ours/* \
     && pip install plone.recipe.zope2instance==6.11.0
 
 COPY skeleton/ /app
